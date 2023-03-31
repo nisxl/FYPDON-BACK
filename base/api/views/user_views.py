@@ -1,21 +1,13 @@
 from rest_framework import status
 from django.contrib.auth.hashers import make_password
-from base.models import Note
-from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.contrib.auth.models import User
-from base.items import products
-
-from base.models import Product
-from .serializers import ProductSerializer
-
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-
-from .serializers import NoteSerializer, UserSerailizerWithToken, UserSerializer
+from base.api.serializers import UserSerailizerWithToken, UserSerializer
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -51,29 +43,6 @@ def getRoutes(request):
 
     ]
     return Response(routes)
-
-
-@api_view(['GET'])
-def getProducts(request):
-    products = Product.objects.all()
-    serializer = ProductSerializer(products, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-def getProduct(request, pk):
-    product = Product.objects.get(_id=pk)
-    serializer = ProductSerializer(product, many=False)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def getNotes(request):
-    user = request.user
-    notes = user.note_set.all()
-    serializer = NoteSerializer(notes, many=True)
-    return Response(serializer.data)
 
 
 @api_view(['PUT'])
@@ -127,3 +96,36 @@ def registerUser(request):
     except:
         message = {'detail': 'User with the same email already exists'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def getUserById(request, pk):
+    user = User.objects.get(id=pk)
+    serializer = UserSerializer(user, many=False)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateUser(request, pk):
+    user = User.objects.get(id=pk)
+
+    data = request.data
+
+    user.first_name = data['name']
+    user.username = data['email']
+    user.email = data['email']
+    user.is_staff = data['isAdmin']
+
+    user.save()
+    serializer = UserSerializer(user, many=False)
+
+    return Response(serializer.data)
+
+
+@api_view(['DELETE'])
+def deleteUser(request, pk):
+    userForDeletion = User.objects.get(id=pk)
+    userForDeletion.delete()
+    return Response("user was deleted")

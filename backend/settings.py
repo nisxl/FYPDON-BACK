@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -180,10 +181,11 @@ MEDIA_URL = '/images/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# for static image storing
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
-
+# for user uploaded content
 MEDIA_ROOT = 'static/images'
 
 
