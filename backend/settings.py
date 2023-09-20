@@ -28,7 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
 
     'base.apps.BaseConfig',
 
@@ -60,7 +60,7 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -108,13 +108,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
+# AUTH_USER_MODEL = 'base.CustomUser'
+# AUTH_USER_MODEL = "base.User"
+
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            # os.path.join(BASE_DIR,'frontend/build')
-        ],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -144,7 +145,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'rollers',
+        'NAME': 'rollersbakery',
         'USER': 'postgres',
         'PASSWORD': 'nischal',
         'HOST': 'localhost',
@@ -197,10 +198,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # for static image storing
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-    # BASE_DIR / 'frontend/build/static'
 ]
 # for user uploaded content
 MEDIA_ROOT = 'static/images'
 
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'nis.maharaj@gmail.com'
+EMAIL_HOST_PASSWORD = "hebbdjmnelnyzzlf"
+EMAIL_PORT = 587
+
+TEST_SECRET_KEY = "test_secret_key_aa23df7c97554fa2a4245996ac2b5cb8"
+
+# hebbdjmnelnyzzlf

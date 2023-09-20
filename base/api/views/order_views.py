@@ -3,10 +3,11 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.conf import settings
 from base.models import Product, Order, OrderItem, ShippingAddress
 from base.api.serializers import OrderSerializer
 from datetime import datetime
-
+import requests
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -93,15 +94,15 @@ def getOrderById(request, pk):
         return Response({'detail': 'Order does not exist'},   status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def updateOrderToPaid(request, pk):
-    order = Order.objects.get(_id=pk)
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def updateOrderToPaid(request, pk):
+#     order = Order.objects.get(_id=pk)
 
-    order.isPaid = True
-    order.paidAt = datetime.now()
-    order.save()
-    return Response("Order was paid")
+#     order.isPaid = True
+#     order.paidAt = datetime.now()
+#     order.save()
+#     return Response("Order was paid")
 
 
 @api_view(['PUT'])
@@ -113,3 +114,50 @@ def updateOrderToDelivered(request, pk):
     order.deliveredAt = datetime.now()
     order.save()
     return Response("Order was delivered")
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateOrderToPaid(request, pk):
+    order = Order.objects.get(_id=pk)
+
+    if request.method == 'PUT':
+        payment_method = request.data.get('paymentMethod')
+        payment_result = request.data.get('paymentResult')
+
+        if not payment_method or not payment_result:
+            return Response({'error': 'Payment method and result are required'})
+
+        if payment_method == 'Khalti':
+            headers = {
+                'Authorization': f"Key {settings.TEST_SECRET_KEY}"
+            }
+            payload = {
+                'token': payment_result.get('token'),
+                'amount': payment_result.get('amount'),
+            }
+
+            try:
+                response = requests.post('https://khalti.com/api/v2/payment/verify/', data=payload, headers=headers)
+
+                if response.status_code == 200:
+                    response_json = response.json()
+
+                    if response_json.get('idx'):
+                        order.isPaid = True
+                        order.paidAt = datetime.now()
+                        order.transaction_id = response_json.get('idx')
+                        order.save()
+                        return Response({'message': 'Order was paid.'})
+                    else:
+                        return Response({'error': 'Payment verification failed'})
+                else:
+                    return Response({'error': 'Khalti API request failed'})
+            except Exception as e:
+                return Response({'error': str(e)})
+
+        # Add other payment methods here
+        else:
+            return Response({'error': 'Invalid payment method'})
+
+    return Response({'error': 'Invalid request method'})

@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-# Create your models here.
 
 
 class Note(models.Model):
@@ -13,6 +12,8 @@ class Product(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     image = models.ImageField(null=True, blank=True,
                               default='/placeholder.png')
+    baked_goods_type = models.CharField(max_length=200, null=True, blank=True)
+    flavor = models.CharField(max_length=200, null=True, blank=True)
     brand = models.CharField(max_length=200, null=True, blank=True)
     category = models.CharField(max_length=200, null=True, blank=True)
     description = models.CharField(max_length=200, null=True, blank=True)
@@ -21,12 +22,18 @@ class Product(models.Model):
     numReviews = models.IntegerField(null=True, blank=True, default=0)
     price = models.DecimalField(
         max_digits=7, decimal_places=1, null=True, blank=True)
-    countInStock = models.IntegerField(null=True, blank=True, default=0)
+    countInStock = models.IntegerField(null=True, blank=True, default=100)
     createdAt = models.DateTimeField(auto_now_add=True)
     _id = models.AutoField(primary_key=True, editable=False)
 
+
+    is_cake = models.BooleanField(default=False)
+    min_weight = models.IntegerField(null=True, blank=True, default=1)
+    max_weight = models.IntegerField(null=True, blank=True, default=10)
+
     def __str__(self):
         return self.name
+
 
 
 class Review(models.Model):
@@ -57,7 +64,7 @@ class Order(models.Model):
     deliveredAt = models.DateTimeField(
         auto_now_add=False, null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
-    _id = models.AutoField(primary_key=True, editable=False)
+    _id = models.AutoField(primary_key=True, editable=False) 
 
     def __str__(self):
         return str(self.createdAt)

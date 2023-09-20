@@ -1,16 +1,28 @@
 # from rest_framework.serializers import ModelSerializer
-from base.models import Note
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from base.models import Product, Order, OrderItem, ShippingAddress, Review
+from base.models import *
+from django.contrib.auth.models import User
+from django.urls import path
+# User = get_user_model()
 
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
 
-class NoteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Note
-        fields = '__all__'
+        model = User
+        fields = ['username', 'email', 'password']
+
+    def create(self, validated_data):
+        user = User.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,8 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         return name
 
-
-class UserSerailizerWithToken(UserSerializer):
+class UserSerializerWithToken(UserSerializer):
     token = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -55,6 +66,46 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# class ProductSerializer(serializers.ModelSerializer):
+#     reviews = serializers.SerializerMethodField(read_only=True)
+
+#     class Meta:
+#         model = Product
+#         fields = '__all__'
+
+#     def get_reviews(self, obj):
+#         reviews = obj.review_set.all()
+#         if isinstance(reviews, tuple):
+#             return []
+#         serializer = ReviewSerializer(reviews, many=True)
+#         return serializer.data
+
+# class ProductSerializer(serializers.ModelSerializer):
+#     reviews = serializers.SerializerMethodField(read_only=True)
+
+#     class Meta:
+#         model = Product
+#         fields = '__all__'
+
+#     def get_reviews(self, obj):
+#         reviews = obj.review_set.all()
+#         serializer = ReviewSerializer(reviews, many=True)
+#         return serializer.data
+
+# class ProductSerializer(serializers.ModelSerializer):
+#     reviews = serializers.SerializerMethodField(read_only=True)
+
+#     class Meta:
+#         model = Product
+#         fields = '__all__'
+
+#     def get_reviews(self, obj):
+#         reviews = obj.review_set.all()
+#         if isinstance(reviews, tuple) or not reviews:  # Check if reviews is a tuple or empty
+#             return []
+#         serializer = ReviewSerializer(reviews, many=True)
+#         return serializer.data
+
 class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
 
@@ -64,6 +115,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_reviews(self, obj):
         reviews = obj.review_set.all()
+        if isinstance(reviews, tuple) or not reviews:
+            return []
         serializer = ReviewSerializer(reviews, many=True)
         return serializer.data
 
